@@ -1,0 +1,3 @@
+lambda:
+  architecture: ARM_64  # or X86_64
+  python_runtime: PYTHON_3_12  # or PYTHON_3_9, PYTHON_3_10, PYTHON_3_11
