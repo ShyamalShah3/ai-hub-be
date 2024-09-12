@@ -1,6 +1,6 @@
 import json
 
-from langchain.callbacks.base import BaseCallbackHandler
+from langchain_core.callbacks import BaseCallbackHandler
 from messaging.service import MessageDeliveryService
 from model.postprocess import clean_answer
 from utils.enums import WebSocketMessageFields as wssm
@@ -8,7 +8,7 @@ from utils.enums import WebSocketMessageTypes as wsst
 
 class BedrockStreamingCallback(BaseCallbackHandler):
     """
-    Custom Bedrock streaming callback to be specified in `callbacks` for langchain.llms.bedrock.Bedrock
+    Custom Bedrock streaming callback to be specified in `callbacks` for langchain_aws.BedrockLLM
     """
 
     def __init__(self, message_service: MessageDeliveryService):
@@ -18,7 +18,7 @@ class BedrockStreamingCallback(BaseCallbackHandler):
     def on_llm_new_token(self, token: str, **kwargs) -> None:
         """
         Runs on each new token produced by LLM. Concatenates tokens produced by LLM so far and posts to message_service
-        Requires setting streaming==True in the langchain.llms.bedrock.Bedrock class to be executed
+        Requires setting streaming==True in the  langchain_aws.BedrockLLM class to be executed
         """
         self.concatenated_answer += token
         serialized_response_body = json.dumps(
