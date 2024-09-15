@@ -23,6 +23,7 @@ class WebSocketMessageTypes(str, Enum):
     ERROR = "error"
     MESSAGE = "message"
     STREAM = "stream"
+    END = "end"  # Added this line
 
 class WebSocketMessageActions(str, Enum):
     CLOSE = "close"

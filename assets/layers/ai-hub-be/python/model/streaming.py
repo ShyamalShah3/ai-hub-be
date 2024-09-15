@@ -32,7 +32,7 @@ class BedrockStreamingCallback(BaseCallbackHandler):
     def on_llm_end(self, response, **kwargs) -> None:
         """Called when LLM generation ends."""
         serialized_response_body = json.dumps({
-            wssm.MESSAGE: "Response complete",
+            wssm.MESSAGE: clean_answer(self.current_response),
             wssm.TYPE: wsst.END,
         })
         self.message_service.post(payload=serialized_response_body)

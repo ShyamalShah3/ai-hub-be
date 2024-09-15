@@ -1,7 +1,5 @@
 from typing import Any
-
 import boto3
-
 from messaging.publishers.base import BasePublisher
 
 class WebSocketPublisher(BasePublisher):
@@ -12,6 +10,6 @@ class WebSocketPublisher(BasePublisher):
 
     def publish(self, payload: Any) -> None:
         self._client.post_to_connection(
-            Data=payload,
+            Data=payload.encode('utf-8'),
             ConnectionId=self._connection_id,
         )

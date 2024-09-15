@@ -2,16 +2,13 @@ import yaml
 from aws_cdk import (
     Stack,
     aws_lambda as _lambda,
-    aws_s3 as s3,
-    aws_apigatewayv2 as apigwv2,
-    aws_apigatewayv2_integrations as integrations,
-    RemovalPolicy,
 )
 from constructs import Construct
 from infra.constructs.lambda_layers import LambdaLayers
+from infra.constructs.api_construct import ApiConstruct
 
 class AiHubBeStack(Stack):
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
 
         # Load configuration
@@ -24,15 +21,17 @@ class AiHubBeStack(Stack):
             architecture = _lambda.Architecture.ARM_64
 
         # Set Python runtime
-        python_runtime = _lambda.Runtime.PYTHON_3_9
-        if config["lambda"]["python_runtime"] == "PYTHON_3_10":
+        python_runtime_str = config["lambda"]["python_runtime"]
+        if python_runtime_str == "PYTHON_3_9":
+            python_runtime = _lambda.Runtime.PYTHON_3_9
+        elif python_runtime_str == "PYTHON_3_10":
             python_runtime = _lambda.Runtime.PYTHON_3_10
-        elif config["lambda"]["python_runtime"] == "PYTHON_3_11":
+        elif python_runtime_str == "PYTHON_3_11":
             python_runtime = _lambda.Runtime.PYTHON_3_11
-        elif config["lambda"]["python_runtime"] == "PYTHON_3_12":
+        elif python_runtime_str == "PYTHON_3_12":
             python_runtime = _lambda.Runtime.PYTHON_3_12
         else:
-            raise ValueError(f"Unsupported Python runtime: {config['lambda']['python_runtime']}")
+            raise ValueError(f"Unsupported Python runtime: {python_runtime_str}")
 
         ## **************** Lambda Layers ****************
         self.layers = LambdaLayers(
@@ -41,4 +40,14 @@ class AiHubBeStack(Stack):
             stack_name=construct_id,
             architecture=architecture,
             python_runtime=python_runtime,
+        )
+
+        ## **************** API Construct ****************
+        self.api_construct = ApiConstruct(
+            self,
+            "ApiConstruct",
+            stack_name=construct_id,
+            layers=self.layers.get_all_layers(),
+            architecture=architecture,
+            runtime=python_runtime,
         )
