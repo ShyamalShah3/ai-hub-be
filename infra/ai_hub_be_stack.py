@@ -11,9 +11,12 @@ class AiHubBeStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
 
-        # Load configuration
+        # Load configuration files
         with open("config.yml", "r") as config_file:
             config = yaml.safe_load(config_file)
+
+        with open("api_keys.yml", "r") as api_key_file:
+            api_key_config = yaml.safe_load(api_key_file)
 
         # Set architecture
         architecture = _lambda.Architecture.X86_64
@@ -33,6 +36,10 @@ class AiHubBeStack(Stack):
         else:
             raise ValueError(f"Unsupported Python runtime: {python_runtime_str}")
 
+        # Set OpenAI Secret Values
+        openai_secret_name = api_key_config["openai"]["secret_name"]
+        openai_secret_arn = api_key_config["openai"]["secret_arn"]
+
         ## **************** Lambda Layers ****************
         self.layers = LambdaLayers(
             self,
@@ -50,4 +57,6 @@ class AiHubBeStack(Stack):
             layers=self.layers.get_all_layers(),
             architecture=architecture,
             runtime=python_runtime,
+            openai_secret_name=openai_secret_name,
+            openai_secret_arn=openai_secret_arn
         )

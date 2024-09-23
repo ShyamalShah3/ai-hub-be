@@ -5,9 +5,9 @@ from model.postprocess import clean_answer
 from utils.enums import WebSocketMessageFields as wssm
 from utils.enums import WebSocketMessageTypes as wsst
 
-class BedrockStreamingCallback(BaseCallbackHandler):
+class StreamingCallback(BaseCallbackHandler):
     """
-    Custom Bedrock streaming callback to be used with RunnableWithMessageHistory and BedrockChat
+    Custom streaming callback to be used with RunnableWithMessageHistory
     """
 
     def __init__(self, message_service: MessageDeliveryService):

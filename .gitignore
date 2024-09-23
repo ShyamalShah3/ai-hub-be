@@ -9,3 +9,8 @@ __pycache__
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+api_keys.yml
+
+foundational_models.txt
+test*

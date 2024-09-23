@@ -1,5 +1,4 @@
-# api_construct.py
-
+import yaml
 from aws_cdk import (
     aws_apigatewayv2 as apigw,
     aws_apigatewayv2_integrations as integrations,
@@ -22,6 +21,8 @@ class ApiConstruct(Construct):
         layers,
         architecture: _lambda.Architecture,
         runtime: _lambda.Runtime,
+        openai_secret_name: str,
+        openai_secret_arn: str
     ):
         super().__init__(scope, id)
 
@@ -110,7 +111,8 @@ class ApiConstruct(Construct):
             layers=layers,
             environment={
                 "CHAT_HISTORY_TABLE_NAME": chat_history_dynamodb_table.table_name,
-                "REGION": Aws.REGION
+                "REGION": Aws.REGION,
+                "OPENAI_SECRET_NAME": openai_secret_name
             },
         )
 
@@ -126,6 +128,7 @@ class ApiConstruct(Construct):
         chat_handler.grant_dynamodb_access(chat_history_dynamodb_table)
         chat_handler.grant_execute_api_access(api_arn)
         chat_handler.grant_bedrock_access()
+        chat_handler.grant_secrets_manager_access(openai_secret_arn)
 
         # Add routes to the WebSocket API
         self.web_socket_api.add_route(

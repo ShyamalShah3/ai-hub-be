@@ -59,3 +59,19 @@ class LambdaConstruct(Construct):
                 resources=["*"],
             )
         )
+    
+    def grant_ssm_parameter_access(self, parameter_arn: str):
+        self.function.add_to_role_policy(
+            iam.PolicyStatement(
+                actions=["ssm:GetParameter"],
+                resources=[parameter_arn],
+            )
+        )
+    
+    def grant_secrets_manager_access(self, secret_arn: str):
+        self.function.add_to_role_policy(
+            iam.PolicyStatement(
+                actions=["secretsmanager:GetSecretValue"],
+                resources=[secret_arn]
+            )
+        )
