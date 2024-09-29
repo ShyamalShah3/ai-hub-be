@@ -36,9 +36,11 @@ class AiHubBeStack(Stack):
         else:
             raise ValueError(f"Unsupported Python runtime: {python_runtime_str}")
 
-        # Set OpenAI Secret Values
+        # Get values from config
         openai_secret_name = api_key_config["openai"]["secret_name"]
         openai_secret_arn = api_key_config["openai"]["secret_arn"]
+        max_tokens = str(config["model"]["max_tokens"])
+        temperature = str(config["model"]["temperature"])
 
         ## **************** Lambda Layers ****************
         self.layers = LambdaLayers(
@@ -58,5 +60,7 @@ class AiHubBeStack(Stack):
             architecture=architecture,
             runtime=python_runtime,
             openai_secret_name=openai_secret_name,
-            openai_secret_arn=openai_secret_arn
+            openai_secret_arn=openai_secret_arn,
+            max_tokens=max_tokens,
+            temperature=temperature
         )

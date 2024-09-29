@@ -22,7 +22,9 @@ class ApiConstruct(Construct):
         architecture: _lambda.Architecture,
         runtime: _lambda.Runtime,
         openai_secret_name: str,
-        openai_secret_arn: str
+        openai_secret_arn: str,
+        max_tokens: str,
+        temperature: str
     ):
         super().__init__(scope, id)
 
@@ -112,7 +114,9 @@ class ApiConstruct(Construct):
             environment={
                 "CHAT_HISTORY_TABLE_NAME": chat_history_dynamodb_table.table_name,
                 "REGION": Aws.REGION,
-                "OPENAI_SECRET_NAME": openai_secret_name
+                "OPENAI_SECRET_NAME": openai_secret_name,
+                "DEFAULT_MAX_TOKENS": max_tokens,
+                "DEFAULT_TEMPERATURE": temperature
             },
         )
 

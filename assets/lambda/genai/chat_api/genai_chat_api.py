@@ -81,14 +81,22 @@ def extract_event_data(event: Dict[str, Any]) -> tuple:
         event (dict): The Lambda event.
 
     Returns:
-        tuple: Contains body, session_id, user_input, and model_name.
+        tuple: Contains body, session_id, user_input, model_name, and max_tokens.
     """
-    body = json.loads(event.get('body', '{}'))
+    try:
+        body = json.loads(event.get('body', '{}')) if isinstance(event.get('body'), str) else event.get('body', {})
+    except json.JSONDecodeError as e:
+        LOGGER.error(f"Failed to parse event body: {e}")
+        raise ValueError(f"Invalid JSON in event body: {e}")
+
     session_id = body.get('session_id', 'test-session')
     user_input = body.get('message', '')
     model_name = body.get('model_name', 'CLAUDE_3_5_SONNET')  # Default model
-    LOGGER.debug(f"Extracted event data: session_id={session_id}, user_input={user_input}, model_name={model_name}")
-    return body, session_id, user_input, model_name
+    max_tokens = int(body.get('max_tokens', os.environ.get('DEFAULT_MAX_TOKENS', 1000)))
+    temperature = float(body.get('temperature', os.environ.get('DEFAULT_TEMPERATURE', 0.7)))
+    
+    LOGGER.debug(f"Extracted event data: session_id={session_id}, user_input={user_input}, model_name={model_name}, max_tokens={max_tokens}, temperature={temperature}")
+    return body, session_id, user_input, model_name, max_tokens, temperature
 
 
 def attach_websocket_publisher(event: Dict[str, Any], message_service: MessageDeliveryService) -> None:
@@ -108,12 +116,14 @@ def attach_websocket_publisher(event: Dict[str, Any], message_service: MessageDe
         LOGGER.warning("RequestContext not present in event. WebSocketPublisher not attached.")
 
 
-def initialize_llm(model_name: str, streaming_callback: StreamingCallback = None) -> Any:
+def initialize_llm(model_name: str, max_tokens: int, temperature: float, streaming_callback: StreamingCallback = None) -> Any:
     """
     Initializes the appropriate LLM based on the model name using the ProviderFactory.
 
     Parameters:
         model_name (str): The name of the model to instantiate.
+        max_tokens (int): The maximum number of tokens for the model response.
+        temperature (float): The temperature to set for the selected model.
         streaming_callback (StreamingCallback, optional): Callback handler for streaming responses (required for Bedrock).
 
     Returns:
@@ -126,7 +136,9 @@ def initialize_llm(model_name: str, streaming_callback: StreamingCallback = None
     factory = ProviderFactory(
         model_name=model_name,
         streaming_callback=streaming_callback,
-        api_key=api_key
+        api_key=api_key,
+        max_tokens=max_tokens,
+        temperature=temperature
     )
 
     # Get the provider instance
@@ -134,7 +146,7 @@ def initialize_llm(model_name: str, streaming_callback: StreamingCallback = None
 
     # Get the LLM instance from the provider
     llm = provider.get_llm()
-    LOGGER.debug(f"LLM initialized for model: {model_name}")
+    LOGGER.debug(f"LLM initialized for model: {model_name} with max_tokens: {max_tokens} and temperature: {temperature}")
     return llm
 
 
@@ -189,7 +201,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     try:
         # Extract data from the event
-        body, session_id, user_input, model_name  = extract_event_data(event)
+        LOGGER.debug(f"Received event: {event}")
+        body, session_id, user_input, model_name, max_tokens, temperature  = extract_event_data(event)
 
         # Attach WebSocketPublisher if available
         attach_websocket_publisher(event, message_service)
@@ -198,7 +211,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         streaming_callback = StreamingCallback(message_service=message_service)
 
         # Initialize LLM
-        llm = initialize_llm(model_name, streaming_callback)
+        llm = initialize_llm(model_name, max_tokens, temperature, streaming_callback)
 
         # Get prompt template
         prompt = get_prompt_template()
@@ -259,6 +272,12 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             funb.STATUS_CODE: 500,
             funb.BODY: json.dumps({'error': str(e)})
+        }
+    except json.JSONDecodeError as je:
+        LOGGER.error(f"JSON Decode Error: {je}")
+        return {
+            funb.STATUS_CODE: 400,
+            funb.BODY: json.dumps({'error': f"Invalid JSON: {str(je)}"})
         }
     except ValueError as ve:
         LOGGER.error(f"ValueError: {ve}")
