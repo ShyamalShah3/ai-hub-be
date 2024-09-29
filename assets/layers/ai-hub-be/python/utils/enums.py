@@ -31,6 +31,7 @@ class WebSocketMessageActions(str, Enum):
 class Provider(Enum):
     BEDROCK = "bedrock"
     OPENAI = "openai"
+    GOOGLE = "google"
 
 class BedrockModel(str,Enum):
     CLAUDE_3_5_SONNET = "us.anthropic.claude-3-5-sonnet-20240620-v1:0"
@@ -55,3 +56,8 @@ class OpenAiModel(str,Enum):
     GPT_4O_MINI = "gpt-4o-mini-2024-07-18"
     # O1_PREVIEW = "o1-preview"
     # O1_MINI_PREVIEW = "o1-mini-preview"
+
+# class GoogleModel(str, Enum):
+#     GEMINI_1_5_PRO = "gemini-1.5-pro-exp-0827"
+#     GEMINI_1_5_FLASH = "gemini-1.5-flash-exp-0827"
+#     GEMINI_1_5_FLASH_8B = "gemini-1.5-flash-8b-exp-0924"

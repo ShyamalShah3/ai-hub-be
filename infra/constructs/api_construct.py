@@ -23,6 +23,8 @@ class ApiConstruct(Construct):
         runtime: _lambda.Runtime,
         openai_secret_name: str,
         openai_secret_arn: str,
+        google_secret_name: str,
+        google_secret_arn: str,
         max_tokens: str,
         temperature: str
     ):
@@ -115,6 +117,7 @@ class ApiConstruct(Construct):
                 "CHAT_HISTORY_TABLE_NAME": chat_history_dynamodb_table.table_name,
                 "REGION": Aws.REGION,
                 "OPENAI_SECRET_NAME": openai_secret_name,
+                "GOOGLE_SECRET_NAME": google_secret_name,
                 "DEFAULT_MAX_TOKENS": max_tokens,
                 "DEFAULT_TEMPERATURE": temperature
             },
@@ -133,6 +136,7 @@ class ApiConstruct(Construct):
         chat_handler.grant_execute_api_access(api_arn)
         chat_handler.grant_bedrock_access()
         chat_handler.grant_secrets_manager_access(openai_secret_arn)
+        chat_handler.grant_secrets_manager_access(google_secret_arn)
 
         # Add routes to the WebSocket API
         self.web_socket_api.add_route(

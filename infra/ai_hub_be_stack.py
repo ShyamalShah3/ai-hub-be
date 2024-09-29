@@ -39,6 +39,8 @@ class AiHubBeStack(Stack):
         # Get values from config
         openai_secret_name = api_key_config["openai"]["secret_name"]
         openai_secret_arn = api_key_config["openai"]["secret_arn"]
+        google_secret_name = api_key_config["google"]["secret_name"]
+        google_secret_arn = api_key_config["google"]["secret_arn"]
         max_tokens = str(config["model"]["max_tokens"])
         temperature = str(config["model"]["temperature"])
 
@@ -61,6 +63,8 @@ class AiHubBeStack(Stack):
             runtime=python_runtime,
             openai_secret_name=openai_secret_name,
             openai_secret_arn=openai_secret_arn,
+            google_secret_name=google_secret_name,
+            google_secret_arn=google_secret_arn,
             max_tokens=max_tokens,
             temperature=temperature
         )

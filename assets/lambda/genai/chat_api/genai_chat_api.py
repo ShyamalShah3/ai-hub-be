@@ -35,44 +35,6 @@ def get_model_configs() -> Dict[str, str]:
     # Placeholder for future enhancements
     return {}
 
-def get_secret(secret_name: str, secret_key: str) -> str:
-    """
-    Retrieves a specific key's value from a secret stored in AWS Secrets Manager.
-
-    Parameters:
-        secret_name (str): The name of the secret in AWS Secrets Manager.
-        secret_key (str): The key within the secret to retrieve.
-
-    Returns:
-        str: The value associated with the specified key in the secret.
-
-    Raises:
-        ClientError: If there is an error retrieving the secret from AWS Secrets Manager.
-    """
-    client = boto3.client('secretsmanager')
-    try:
-        LOGGER.info(f"Attempting to retrieve secret: {secret_name}")
-        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-        
-        # Extract and parse the secret string
-        secret_string = get_secret_value_response['SecretString']
-        LOGGER.debug(f"Secret string retrieved: {secret_string}")
-
-        # Parse the JSON string to get the actual value
-        secret_dict = json.loads(secret_string)
-        
-        if secret_key in secret_dict:
-            LOGGER.info(f"Successfully retrieved value for key: {secret_key}")
-            return secret_dict[secret_key]
-        else:
-            LOGGER.error(f"Key '{secret_key}' not found in secret '{secret_name}'")
-            raise KeyError(f"Key '{secret_key}' not found in the secret")
-
-    except ClientError as e:
-        LOGGER.error(f"Error retrieving secret named {secret_name}: {e}")
-        raise e
-
-
 def extract_event_data(event: Dict[str, Any]) -> tuple:
     """
     Extracts the necessary data from the Lambda event.
@@ -129,14 +91,11 @@ def initialize_llm(model_name: str, max_tokens: int, temperature: float, streami
     Returns:
         LLM: An instance of a LangChain LLM.
     """
-    # For OpenAI models, retrieve the API key from environment variables
-    api_key = get_secret(os.environ.get("OPENAI_SECRET_NAME"), "api_key")
 
     # Instantiate the factory with necessary parameters
     factory = ProviderFactory(
         model_name=model_name,
         streaming_callback=streaming_callback,
-        api_key=api_key,
         max_tokens=max_tokens,
         temperature=temperature
     )
